@@ -8,7 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, Info } from 'lucide-react'
+import Link from 'next/link'
 import type { UserSettings } from '@/types'
 
 interface Props {
@@ -138,6 +139,14 @@ export function SettingsClient({ user, settings }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Concept */}
+      <Link href="/concept">
+        <Button variant="outline" className="w-full">
+          <Info className="w-4 h-4 mr-2" />
+          PhysicalGoとは
+        </Button>
+      </Link>
 
       {/* Sign Out */}
       <Button
