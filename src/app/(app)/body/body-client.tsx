@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import {
   Scale, Plus, Camera, TrendingDown, TrendingUp,
-  CalendarDays, ImageIcon, BarChart3, X
+  CalendarDays, ImageIcon, BarChart3, X, Pencil, Trash2, Check
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -22,15 +22,35 @@ import type { BodyRecord } from '@/types'
 
 interface Props { bodyRecords: BodyRecord[]; userId: string }
 
+function todayStr() {
+  return format(new Date(), 'yyyy-MM-dd')
+}
+
+function toLocalIso(dateStr: string) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d, 12, 0, 0).toISOString()
+}
+
 export function BodyClient({ bodyRecords, userId }: Props) {
   const router = useRouter()
   const supabase = createClient()
+
+  // New record form
   const [showForm, setShowForm] = useState(false)
+  const [dateInput, setDateInput] = useState(todayStr())
   const [weightInput, setWeightInput] = useState('')
   const [bodyFatInput, setBodyFatInput] = useState('')
   const [noteInput, setNoteInput] = useState('')
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Edit
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDate, setEditDate] = useState('')
+  const [editWeight, setEditWeight] = useState('')
+  const [editFat, setEditFat] = useState('')
+  const [editNote, setEditNote] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
 
   const latest = bodyRecords[bodyRecords.length - 1]
   const prev = bodyRecords[bodyRecords.length - 2]
@@ -62,17 +82,66 @@ export function BodyClient({ bodyRecords, userId }: Props) {
         body_fat_pct: bodyFatInput ? Number(bodyFatInput) : null,
         note: noteInput || null,
         photo_url: photoUrl,
-        recorded_at: new Date().toISOString(),
+        recorded_at: toLocalIso(dateInput),
       })
       if (error) throw error
       toast.success('記録しました')
-      setShowForm(false); setWeightInput(''); setBodyFatInput(''); setNoteInput(''); setPhotoFile(null)
+      setShowForm(false)
+      setDateInput(todayStr())
+      setWeightInput(''); setBodyFatInput(''); setNoteInput(''); setPhotoFile(null)
       router.refresh()
     } catch (e: any) {
       toast.error(e.message ?? '記録に失敗しました')
     } finally {
       setLoading(false)
     }
+  }
+
+  const startEdit = (r: BodyRecord) => {
+    setEditingId(r.id)
+    setEditDate(format(new Date(r.recorded_at), 'yyyy-MM-dd'))
+    setEditWeight(r.weight_kg?.toString() ?? '')
+    setEditFat(r.body_fat_pct?.toString() ?? '')
+    setEditNote(r.note ?? '')
+  }
+
+  const cancelEdit = () => setEditingId(null)
+
+  const handleUpdate = async () => {
+    if (!editingId) return
+    if (!editWeight && !editFat) { toast.error('体重または体脂肪率を入力してください'); return }
+    setEditLoading(true)
+    try {
+      const { error } = await supabase.schema('physicalgo').from('body_records').update({
+        weight_kg: editWeight ? Number(editWeight) : null,
+        body_fat_pct: editFat ? Number(editFat) : null,
+        note: editNote || null,
+        recorded_at: toLocalIso(editDate),
+      }).eq('id', editingId)
+      if (error) throw error
+      toast.success('更新しました')
+      setEditingId(null)
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e.message ?? '更新に失敗しました')
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    toast('この記録を削除しますか？', {
+      action: {
+        label: '削除する',
+        onClick: async () => {
+          const { error } = await supabase.schema('physicalgo').from('body_records').delete().eq('id', id)
+          if (error) { toast.error('削除に失敗しました'); return }
+          toast.success('削除しました')
+          router.refresh()
+        },
+      },
+      cancel: { label: 'キャンセル', onClick: () => {} },
+    })
   }
 
   return (
@@ -87,17 +156,17 @@ export function BodyClient({ bodyRecords, userId }: Props) {
         </Button>
       </div>
 
-      {/* Latest stats — understated */}
+      {/* Stats */}
       {latest && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {latest.weight_kg !== null && (
-            <Card className="border border-border/60">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Scale className="w-3.5 h-3.5 text-muted-foreground" />
                   <p className="text-xs text-muted-foreground">体重</p>
                 </div>
-                <p className="text-2xl font-light text-foreground/60">
+                <p className="text-2xl font-light text-foreground/70">
                   {latest.weight_kg}<span className="text-sm ml-0.5">kg</span>
                 </p>
                 {weightDiff !== null && (
@@ -110,13 +179,13 @@ export function BodyClient({ bodyRecords, userId }: Props) {
             </Card>
           )}
           {latest.body_fat_pct !== null && (
-            <Card className="border border-border/60">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
                   <p className="text-xs text-muted-foreground">体脂肪率</p>
                 </div>
-                <p className="text-2xl font-light text-foreground/60">
+                <p className="text-2xl font-light text-foreground/70">
                   {latest.body_fat_pct}<span className="text-sm ml-0.5">%</span>
                 </p>
                 {fatDiff !== null && (
@@ -128,7 +197,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
               </CardContent>
             </Card>
           )}
-          <Card className="border border-border/60">
+          <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
@@ -139,13 +208,13 @@ export function BodyClient({ bodyRecords, userId }: Props) {
               </p>
             </CardContent>
           </Card>
-          <Card className="border border-border/60">
+          <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">記録数</p>
               </div>
-              <p className="text-2xl font-light text-foreground/60">
+              <p className="text-2xl font-light text-foreground/70">
                 {bodyRecords.length}<span className="text-sm ml-0.5">件</span>
               </p>
             </CardContent>
@@ -155,7 +224,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
 
       {/* Record Form */}
       {showForm && (
-        <Card className="border border-primary/20 animate-in fade-in slide-in-from-top-2">
+        <Card className="border-primary/30 animate-in fade-in slide-in-from-top-2">
           <CardHeader className="pb-3 pt-4 px-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -168,6 +237,11 @@ export function BodyClient({ bodyRecords, userId }: Props) {
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4 space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="date" className="text-xs">記録日</Label>
+              <Input id="date" type="date" value={dateInput}
+                onChange={e => setDateInput(e.target.value)} className="h-10" max={todayStr()} />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="weight" className="text-xs">体重 (kg)</Label>
@@ -222,7 +296,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
               <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />推移グラフ
               </h2>
-              <Card className="border border-border/60">
+              <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-3">体重 (kg)</p>
                   <ResponsiveContainer width="100%" height={150}>
@@ -236,7 +310,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              <Card className="border border-border/60">
+              <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground mb-3">体脂肪率 (%)</p>
                   <ResponsiveContainer width="100%" height={150}>
@@ -267,7 +341,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
                         <img src={r.photo_url!} alt="" className="w-full h-full object-cover" />
                       </div>
                       <p className="text-[10px] text-muted-foreground text-center">
-                        {format(new Date(r.recorded_at), 'M月', { locale: ja })}
+                        {format(new Date(r.recorded_at), 'M月d日', { locale: ja })}
                       </p>
                     </div>
                   ))}
@@ -279,18 +353,81 @@ export function BodyClient({ bodyRecords, userId }: Props) {
               <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                 <CalendarDays className="w-4 h-4" />記録一覧
               </h2>
-              <Card className="border border-border/60">
+              <Card>
                 <CardContent className="p-0">
                   <div className="divide-y divide-border/40">
                     {[...bodyRecords].reverse().map(r => (
-                      <div key={r.id} className="flex items-center justify-between px-4 py-3 text-sm">
-                        <span className="text-muted-foreground text-xs">
-                          {format(new Date(r.recorded_at), 'M月d日', { locale: ja })}
-                        </span>
-                        <div className="flex gap-4 items-center">
-                          {r.weight_kg && <span className="font-medium text-foreground/70">{r.weight_kg}<span className="text-xs text-muted-foreground ml-0.5">kg</span></span>}
-                          {r.body_fat_pct && <span className="text-muted-foreground">{r.body_fat_pct}<span className="text-xs ml-0.5">%</span></span>}
-                        </div>
+                      <div key={r.id}>
+                        {editingId === r.id ? (
+                          <div className="px-4 py-3 space-y-3 bg-muted/30">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">記録日</Label>
+                              <Input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
+                                className="h-9 text-sm" max={todayStr()} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-xs">体重 (kg)</Label>
+                                <Input type="number" placeholder="kg" value={editWeight}
+                                  onChange={e => setEditWeight(e.target.value)} inputMode="decimal" className="h-9 text-sm" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">体脂肪率 (%)</Label>
+                                <Input type="number" placeholder="%" value={editFat}
+                                  onChange={e => setEditFat(e.target.value)} inputMode="decimal" className="h-9 text-sm" />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">メモ</Label>
+                              <Input placeholder="メモ（任意）" value={editNote}
+                                onChange={e => setEditNote(e.target.value)} className="h-9 text-sm" />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={cancelEdit}>キャンセル</Button>
+                              <Button size="sm" className="flex-1 h-8 text-xs bg-primary hover:bg-primary/90"
+                                onClick={handleUpdate} disabled={editLoading}>
+                                {editLoading ? '更新中...' : (
+                                  <span className="flex items-center gap-1"><Check className="w-3 h-3" />保存</span>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between px-4 py-3 text-sm group">
+                            <span className="text-muted-foreground text-xs w-16 shrink-0">
+                              {format(new Date(r.recorded_at), 'M月d日', { locale: ja })}
+                            </span>
+                            <div className="flex gap-4 items-center flex-1">
+                              {r.weight_kg != null && (
+                                <span className="font-medium text-foreground/70">
+                                  {r.weight_kg}<span className="text-xs text-muted-foreground ml-0.5">kg</span>
+                                </span>
+                              )}
+                              {r.body_fat_pct != null && (
+                                <span className="text-muted-foreground">
+                                  {r.body_fat_pct}<span className="text-xs ml-0.5">%</span>
+                                </span>
+                              )}
+                              {r.note && (
+                                <span className="text-xs text-muted-foreground truncate max-w-[80px]">{r.note}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => startEdit(r)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(r.id)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

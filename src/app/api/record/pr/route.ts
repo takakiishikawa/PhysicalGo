@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { exercise_id, exercise_name, weight_kg, reps, record_type } = body
+  const { exercise_id, exercise_name, weight_kg, reps, record_type, recorded_at } = body
 
   const isPullUp = exercise_name === 'pull_up'
 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       reps: reps ?? null,
       record_type,
       is_pr,
-      recorded_at: new Date().toISOString(),
+      recorded_at: recorded_at ?? new Date().toISOString(),
     })
     .select()
     .single()

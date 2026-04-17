@@ -1,4 +1,4 @@
-const CACHE_NAME = 'physicalgo-v1'
+const CACHE_NAME = 'physicalgo-v2'
 const STATIC_ASSETS = ['/dashboard', '/record', '/form', '/archive', '/body', '/settings']
 
 self.addEventListener('install', (event) => {

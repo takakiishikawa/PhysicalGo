@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { createClient } from '@/lib/supabase/client'
 import {
   Dumbbell, Star, ChevronDown, ChevronUp, Trophy,
-  ArrowUpToLine, Zap, TrendingUp, History, CheckCircle2, Plus
+  ArrowUpToLine, Zap, TrendingUp, History, CheckCircle2, Plus,
+  Pencil, Trash2, Check, X
 } from 'lucide-react'
 import type { Exercise, PersonalRecord } from '@/types'
 import { format } from 'date-fns'
@@ -34,9 +36,20 @@ const EXERCISE_META: Record<string, { icon: React.ElementType; color: string; bg
   bench_press:   { icon: Zap,            color: '#8b5cf6', bg: 'bg-violet-50',  border: 'border-violet-200' },
 }
 
+function todayStr() {
+  return format(new Date(), 'yyyy-MM-dd')
+}
+
+function toLocalIso(dateStr: string) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d, 12, 0, 0).toISOString()
+}
+
 export function RecordClient({ exercises, personalRecords, userId }: Props) {
   const router = useRouter()
+  const supabase = createClient()
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
+  const [recordDate, setRecordDate] = useState(todayStr())
   const [weightInput, setWeightInput] = useState('')
   const [repsInput, setRepsInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -45,6 +58,13 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
     isPR: boolean; prevValue?: number; newValue: number; exerciseName: string
   } | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDate, setEditDate] = useState('')
+  const [editWeight, setEditWeight] = useState('')
+  const [editReps, setEditReps] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
 
   const getExerciseRecords = useCallback((exerciseId: string) => {
     return personalRecords.filter(r => r.exercise_id === exerciseId)
@@ -75,6 +95,7 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
           weight_kg: isPullUp ? null : value,
           reps: isPullUp ? value : null,
           record_type: isPullUp ? 'max_reps' : 'weight_5rep',
+          recorded_at: toLocalIso(recordDate),
         }),
       })
       const data = await res.json()
@@ -91,6 +112,52 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
     }
   }
 
+  const startEdit = (r: PersonalRecord, isPullUp: boolean) => {
+    setEditingId(r.id)
+    setEditDate(format(new Date(r.recorded_at), 'yyyy-MM-dd'))
+    setEditWeight(r.weight_kg?.toString() ?? '')
+    setEditReps(r.reps?.toString() ?? '')
+  }
+
+  const cancelEdit = () => setEditingId(null)
+
+  const handleUpdate = async (isPullUp: boolean) => {
+    if (!editingId) return
+    const value = isPullUp ? Number(editReps) : Number(editWeight)
+    if (!value || value <= 0) { toast.error('値を入力してください'); return }
+    setEditLoading(true)
+    try {
+      const { error } = await supabase.schema('physicalgo').from('personal_records').update({
+        weight_kg: isPullUp ? null : value,
+        reps: isPullUp ? value : null,
+        recorded_at: toLocalIso(editDate),
+      }).eq('id', editingId)
+      if (error) throw error
+      toast.success('更新しました')
+      setEditingId(null)
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e.message ?? '更新に失敗しました')
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    toast('この記録を削除しますか？', {
+      action: {
+        label: '削除する',
+        onClick: async () => {
+          const { error } = await supabase.schema('physicalgo').from('personal_records').delete().eq('id', id)
+          if (error) { toast.error('削除に失敗しました'); return }
+          toast.success('削除しました')
+          router.refresh()
+        },
+      },
+      cancel: { label: 'キャンセル', onClick: () => {} },
+    })
+  }
+
   const getChartData = (exerciseId: string, isPullUp: boolean) =>
     getExerciseRecords(exerciseId)
       .slice().sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
@@ -102,12 +169,12 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
 
       <div>
         <h1 className="text-2xl font-semibold">自己ベスト記録</h1>
-        <p className="text-sm text-muted-foreground mt-1">種目を選んで今日の記録を残そう</p>
+        <p className="text-sm text-muted-foreground mt-1">種目を選んで記録を残そう</p>
       </div>
 
       {/* PR Banner */}
       {prResult && (
-        <div className={`rounded-xl p-4 flex items-center gap-3 border animate-in fade-in slide-in-from-top-2 ${
+        <div className={`rounded-2xl p-4 flex items-center gap-3 border animate-in fade-in slide-in-from-top-2 ${
           prResult.isPR ? 'bg-amber-50 border-amber-200' : 'bg-primary/5 border-primary/20'
         }`}>
           {prResult.isPR ? (
@@ -154,11 +221,11 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
                   <button
                     key={ex.id}
                     onClick={() => { setSelectedExercise(isSelected ? null : ex); setPrResult(null) }}
-                    className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all ${
+                    className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left transition-all ${
                       isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/30'
                     }`}
                   >
-                    <div className={`w-9 h-9 ${meta.bg} rounded-lg flex items-center justify-center shrink-0`}>
+                    <div className={`w-9 h-9 ${meta.bg} rounded-xl flex items-center justify-center shrink-0`}>
                       <Icon className="w-4.5 h-4.5" style={{ color: meta.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -182,7 +249,7 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
             const meta = EXERCISE_META[selectedExercise.name] ?? EXERCISE_META.half_deadlift
             const Icon = meta.icon
             return (
-              <Card className="border border-primary/20 animate-in fade-in">
+              <Card className="border-primary/30 animate-in fade-in">
                 <CardHeader className="pb-3 pt-4 px-4">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Icon className="w-4 h-4" style={{ color: meta.color }} />
@@ -190,6 +257,11 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="recordDate" className="text-xs">記録日</Label>
+                    <Input id="recordDate" type="date" value={recordDate}
+                      onChange={e => setRecordDate(e.target.value)} className="h-10" max={todayStr()} />
+                  </div>
                   {isPullUp ? (
                     <div className="space-y-1.5">
                       <Label htmlFor="reps" className="text-xs">回数</Label>
@@ -234,12 +306,12 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
             const Icon = meta.icon
             if (records.length === 0) return null
             return (
-              <Card key={ex.id} className="border border-border/60">
+              <Card key={ex.id}>
                 <CardContent className="p-4">
                   <button className="w-full flex items-center justify-between"
                     onClick={() => setShowHistory(prev => ({ ...prev, [ex.id]: !isExpanded }))}>
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-7 h-7 ${meta.bg} rounded-lg flex items-center justify-center`}>
+                      <div className={`w-7 h-7 ${meta.bg} rounded-xl flex items-center justify-center`}>
                         <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
                       </div>
                       <span className="font-medium text-sm">{ex.name_ja}</span>
@@ -260,15 +332,65 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
                         </LineChart>
                       </ResponsiveContainer>
                       <div className="divide-y divide-border/30">
-                        {records.slice(0, 10).map(r => (
-                          <div key={r.id} className="flex items-center justify-between py-2 text-sm">
-                            <span className="text-muted-foreground text-xs">
-                              {format(new Date(r.recorded_at), 'M月d日', { locale: ja })}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{isPullUp ? `${r.reps}回` : `${r.weight_kg}kg`}</span>
-                              {r.is_pr && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
-                            </div>
+                        {records.slice().sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime()).map(r => (
+                          <div key={r.id}>
+                            {editingId === r.id ? (
+                              <div className="py-3 space-y-3 bg-muted/20 rounded-xl px-3 my-1">
+                                <div className="space-y-1">
+                                  <Label className="text-xs">記録日</Label>
+                                  <Input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
+                                    className="h-9 text-sm" max={todayStr()} />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">{isPullUp ? '回数' : '重量 (kg)'}</Label>
+                                  <div className="flex gap-2 items-center">
+                                    {isPullUp ? (
+                                      <Input type="number" placeholder="回数" value={editReps}
+                                        onChange={e => setEditReps(e.target.value)} inputMode="numeric" className="h-9 text-sm" />
+                                    ) : (
+                                      <Input type="number" placeholder="kg" value={editWeight}
+                                        onChange={e => setEditWeight(e.target.value)} inputMode="decimal" className="h-9 text-sm" />
+                                    )}
+                                    <span className="text-xs text-muted-foreground shrink-0">{isPullUp ? '回' : 'kg'}</span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={cancelEdit}>
+                                    <X className="w-3 h-3 mr-1" />キャンセル
+                                  </Button>
+                                  <Button size="sm" className="flex-1 h-8 text-xs bg-primary hover:bg-primary/90"
+                                    onClick={() => handleUpdate(isPullUp)} disabled={editLoading}>
+                                    {editLoading ? '更新中...' : (
+                                      <span className="flex items-center gap-1"><Check className="w-3 h-3" />保存</span>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between py-2 text-sm group">
+                                <span className="text-muted-foreground text-xs w-14 shrink-0">
+                                  {format(new Date(r.recorded_at), 'M月d日', { locale: ja })}
+                                </span>
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span className="font-medium">{isPullUp ? `${r.reps}回` : `${r.weight_kg}kg`}</span>
+                                  {r.is_pr && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+                                </div>
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => startEdit(r, isPullUp)}
+                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(r.id)}
+                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

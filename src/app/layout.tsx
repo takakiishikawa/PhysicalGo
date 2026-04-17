@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${notoSansJP.variable} h-full`}>
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon.svg" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-full flex flex-col antialiased">
