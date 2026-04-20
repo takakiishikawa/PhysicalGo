@@ -3,16 +3,17 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import {
-  Camera, Upload, Info, Play, CheckCircle2,
-  Dumbbell, ArrowUpToLine, Zap, X, ListChecks
+  Camera, Upload, Play, CheckCircle2,
+  Dumbbell, ArrowUpToLine, Zap, X, ListChecks,
 } from 'lucide-react'
-import { PageHeader, Spinner } from '@takaki/go-design-system'
+import {
+  PageHeader, Section, Banner, Spinner,
+} from '@takaki/go-design-system'
 import type { Exercise } from '@/types'
 
 interface Props { exercises: Exercise[]; userId: string }
@@ -78,10 +79,8 @@ export function FormClient({ exercises }: Props) {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left: Upload + Settings */}
         <div className="space-y-5">
-          {/* Exercise Selection */}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">種目を選択</p>
-            <div className="grid grid-cols-3 gap-2">
+          <Section title="種目を選択" variant="default">
+            <div className="grid grid-cols-3 gap-2 pt-2">
               {exercises.map(ex => {
                 const isSelected = selectedExercise?.id === ex.id
                 const meta = EXERCISE_META[ex.name] ?? EXERCISE_META.half_deadlift
@@ -98,43 +97,42 @@ export function FormClient({ exercises }: Props) {
                 )
               })}
             </div>
-          </div>
+          </Section>
 
-          {/* Video Upload */}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">動画をアップロード</p>
-            <input ref={fileRef} type="file" accept="video/*" capture="environment" onChange={handleFileChange} className="hidden" />
-            {videoPreview ? (
-              <div className="space-y-2">
-                <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-                  <video src={videoPreview} className="w-full h-full object-contain" controls muted playsInline />
-                  <button onClick={() => { setVideoFile(null); setVideoPreview(null); if (fileRef.current) fileRef.current.value = '' }}
-                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center">
-                    <X className="w-4 h-4 text-white" />
+          <Section title="動画をアップロード" variant="default">
+            <div className="pt-2">
+              <input ref={fileRef} type="file" accept="video/*" capture="environment" onChange={handleFileChange} className="hidden" />
+              {videoPreview ? (
+                <div className="space-y-2">
+                  <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                    <video src={videoPreview} className="w-full h-full object-contain" controls muted playsInline />
+                    <button onClick={() => { setVideoFile(null); setVideoPreview(null); if (fileRef.current) fileRef.current.value = '' }}
+                      className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center">
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                    {videoFile?.name}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => { if (fileRef.current) { fileRef.current.capture = 'environment'; fileRef.current.click() } }}
+                    className="flex flex-col items-center gap-2.5 p-5 rounded-lg border-2 border-dashed border-border hover:border-primary/40 hover:bg-muted/30 transition-all">
+                    <Camera className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">今すぐ撮影</span>
+                  </button>
+                  <button onClick={() => { if (fileRef.current) { fileRef.current.removeAttribute('capture'); fileRef.current.click() } }}
+                    className="flex flex-col items-center gap-2.5 p-5 rounded-lg border-2 border-dashed border-border hover:border-primary/40 hover:bg-muted/30 transition-all">
+                    <Upload className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">ギャラリーから</span>
                   </button>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                  {videoFile?.name}
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => { if (fileRef.current) { fileRef.current.capture = 'environment'; fileRef.current.click() } }}
-                  className="flex flex-col items-center gap-2.5 p-5 rounded-lg border-2 border-dashed border-border hover:border-primary/40 hover:bg-muted/30 transition-all">
-                  <Camera className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">今すぐ撮影</span>
-                </button>
-                <button onClick={() => { if (fileRef.current) { fileRef.current.removeAttribute('capture'); fileRef.current.click() } }}
-                  className="flex flex-col items-center gap-2.5 p-5 rounded-lg border-2 border-dashed border-border hover:border-primary/40 hover:bg-muted/30 transition-all">
-                  <Upload className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">ギャラリーから</span>
-                </button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </Section>
 
-          {/* Weight / Reps */}
           {selectedExercise && (
             <div className="grid grid-cols-2 gap-3">
               {selectedExercise.name !== 'pull_up' && (
@@ -152,14 +150,9 @@ export function FormClient({ exercises }: Props) {
             </div>
           )}
 
-          {/* Analyze Button */}
           <Button onClick={handleAnalyze} disabled={loading || !selectedExercise || !videoFile}
             size="lg" className="w-full gap-2">
-            {loading ? (
-              <><Spinner size="sm" />{loadingStep}</>
-            ) : (
-              <><Play className="w-4 h-4" />AIでフォームを解析する</>
-            )}
+            {loading ? <><Spinner size="sm" />{loadingStep}</> : <><Play className="w-4 h-4" />AIでフォームを解析する</>}
           </Button>
         </div>
 
@@ -168,55 +161,38 @@ export function FormClient({ exercises }: Props) {
           {selectedExercise ? (
             <>
               {selectedExercise.filming_guide && (
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-2.5">
-                      <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-semibold text-primary mb-1">撮影ガイド</p>
-                        <p className="text-sm text-foreground/80 leading-relaxed">{selectedExercise.filming_guide}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Banner
+                  variant="info"
+                  title="撮影ガイド"
+                  description={selectedExercise.filming_guide}
+                />
               )}
 
               {selectedExercise.key_checkpoints?.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2 pt-4 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <ListChecks className="w-4 h-4 text-primary" />
-                      AIがチェックするポイント
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 pb-4">
-                    <div className="space-y-2">
-                      {selectedExercise.key_checkpoints.map((cp, i) => (
-                        <div key={i} className="flex items-center gap-2.5 text-sm">
-                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <span className="text-[10px] font-bold text-primary">{i + 1}</span>
-                          </div>
-                          <span>{cp}</span>
+                <Section title="AIがチェックするポイント" variant="bordered">
+                  <div className="space-y-2 pt-3">
+                    {selectedExercise.key_checkpoints.map((cp, i) => (
+                      <div key={i} className="flex items-center gap-2.5 text-sm">
+                        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-bold text-primary">{i + 1}</span>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card className="bg-muted/30">
-                <CardContent className="p-4">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">解析内容</p>
-                  <div className="space-y-1.5">
-                    {['フォームの強みと改善点', '各チェックポイントの評価', '前回との比較・成長の記録'].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
-                        {item}
+                        <span>{cp}</span>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </Section>
+              )}
+
+              <Section title="解析内容" variant="default">
+                <div className="space-y-1.5 pt-2">
+                  {['フォームの強みと改善点', '各チェックポイントの評価', '前回との比較・成長の記録'].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </Section>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground space-y-3">

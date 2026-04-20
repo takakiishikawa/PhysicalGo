@@ -3,13 +3,15 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChevronLeft, ChevronRight, CheckCircle2, AlertCircle,
-  HelpCircle, MessageSquare, TrendingUp, ListChecks, Video
+  HelpCircle, Video,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
+import {
+  Banner, Section, Tag, TagGroup,
+} from '@takaki/go-design-system'
 import type { FormSession, FormFeedback, Exercise } from '@/types'
 
 interface Props {
@@ -19,9 +21,9 @@ interface Props {
 }
 
 const RESULT_CONFIG = {
-  OK:       { icon: CheckCircle2, color: 'text-success',           bg: 'bg-success/10 border-success/20',   label: 'OK' },
-  '要改善': { icon: AlertCircle,  color: 'text-warning',           bg: 'bg-warning/10 border-warning/20',   label: '要改善' },
-  '確認不可': { icon: HelpCircle, color: 'text-muted-foreground',  bg: 'bg-muted border-border',            label: '確認不可' },
+  OK:       { icon: CheckCircle2, color: 'success' as const, label: 'OK' },
+  '要改善': { icon: AlertCircle,  color: 'warning' as const, label: '要改善' },
+  '確認不可': { icon: HelpCircle, color: 'default' as const, label: '確認不可' },
 }
 
 export function FeedbackClient({ session, feedback, pastSessions }: Props) {
@@ -39,15 +41,15 @@ export function FeedbackClient({ session, feedback, pastSessions }: Props) {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className="bg-primary/10 text-primary border-0 text-xs">{exercise?.name_ja}</Badge>
+            <Tag color="primary">{exercise?.name_ja}</Tag>
             <span className="text-xs text-muted-foreground">
               {format(new Date(session.recorded_at), 'M月d日 HH:mm', { locale: ja })}
             </span>
             {(session.weight_kg || session.reps) && (
-              <div className="flex gap-1.5">
-                {session.weight_kg && <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{session.weight_kg}kg</span>}
-                {session.reps && <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{session.reps}回</span>}
-              </div>
+              <TagGroup>
+                {session.weight_kg && <Tag>{session.weight_kg}kg</Tag>}
+                {session.reps && <Tag>{session.reps}回</Tag>}
+              </TagGroup>
             )}
           </div>
           <h1 className="text-xl font-semibold mt-0.5">フォームフィードバック</h1>
@@ -67,11 +69,9 @@ export function FeedbackClient({ session, feedback, pastSessions }: Props) {
             </div>
           )}
 
-          {/* Past sessions */}
           {pastSessions.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">過去のセッション</p>
+            <Section title="過去のセッション" variant="default">
+              <div className="flex items-center justify-end mb-2">
                 <Link href="/archive">
                   <Button variant="ghost" size="sm" className="text-xs h-7">
                     すべて <ChevronRight className="w-3 h-3 ml-0.5" />
@@ -93,116 +93,83 @@ export function FeedbackClient({ session, feedback, pastSessions }: Props) {
                   </Link>
                 ))}
               </div>
-            </div>
+            </Section>
           )}
         </div>
 
         {/* Right: Feedback */}
         <div className="space-y-4">
           {!feedback ? (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-sm text-muted-foreground">フィードバックを読み込み中...</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+              フィードバックを読み込み中...
+            </div>
           ) : (
             <>
-              {/* Overall */}
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-2.5">
-                    <MessageSquare className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-semibold text-primary mb-1">総合コメント</p>
-                      <p className="text-sm text-foreground leading-relaxed">{feedback.overall_comment}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <Banner
+                variant="info"
+                title="総合コメント"
+                description={feedback.overall_comment ?? undefined}
+              />
 
-              {/* Previous comparison */}
               {feedback.previous_comparison && (
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-2.5">
-                      <TrendingUp className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-semibold text-primary mb-1">前回との比較</p>
-                        <p className="text-sm text-foreground/80 leading-relaxed">{feedback.previous_comparison}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Banner
+                  variant="success"
+                  title="前回との比較"
+                  description={feedback.previous_comparison}
+                />
               )}
 
-              {/* Strengths */}
               {feedback.strengths && feedback.strengths.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2 pt-4 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      できていること
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 pb-4 space-y-2">
+                <Section title="できていること" variant="bordered">
+                  <div className="space-y-2 pt-3">
                     {feedback.strengths.map((s, i) => (
                       <div key={i} className="flex items-start gap-2.5 bg-success/10 border border-success/20 rounded-lg px-3 py-2.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
                         <p className="text-sm text-foreground">{s}</p>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                </Section>
               )}
 
-              {/* Improvements */}
               {feedback.improvements && feedback.improvements.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2 pt-4 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-warning" />
-                      改善点
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 pb-4 space-y-2">
+                <Section title="改善点" variant="bordered">
+                  <div className="space-y-2 pt-3">
                     {feedback.improvements.map((imp, i) => (
                       <div key={i} className="flex items-start gap-2.5 bg-warning/10 border border-warning/20 rounded-lg px-3 py-2.5">
                         <AlertCircle className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" />
                         <p className="text-sm text-foreground">{imp}</p>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                </Section>
               )}
 
-              {/* Checkpoints */}
               {checkpoints && Object.keys(checkpoints).length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2 pt-4 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <ListChecks className="w-4 h-4 text-primary" />
-                      チェックポイント詳細
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 pb-4 space-y-2">
+                <Section title="チェックポイント詳細" variant="bordered">
+                  <div className="space-y-2 pt-3">
                     {Object.entries(checkpoints).map(([name, cp]) => {
                       const config = RESULT_CONFIG[cp.result as keyof typeof RESULT_CONFIG] ?? RESULT_CONFIG['確認不可']
                       const Icon = config.icon
                       return (
-                        <div key={name} className={`flex items-start gap-3 border rounded-lg px-3 py-3 ${config.bg}`}>
-                          <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${config.color}`} />
+                        <div key={name} className="flex items-start gap-3 border rounded-lg px-3 py-3">
+                          <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${
+                            config.color === 'success' ? 'text-success' :
+                            config.color === 'warning' ? 'text-warning' :
+                            'text-muted-foreground'
+                          }`} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-medium">{name}</span>
-                              <Badge variant="outline" className={`text-xs ${config.color} border-current`}>{config.label}</Badge>
+                              <Tag color={config.color}>{config.label}</Tag>
                             </div>
                             {cp.comment && <p className="text-xs text-muted-foreground mt-0.5">{cp.comment}</p>}
                           </div>
                         </div>
                       )
                     })}
-                  </CardContent>
-                </Card>
+                  </div>
+                </Section>
               )}
             </>
           )}
