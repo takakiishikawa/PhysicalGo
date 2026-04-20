@@ -124,7 +124,7 @@ export function DashboardClient({ exercises, personalRecords, recentFeedback, la
               自己ベスト推移
             </h2>
             <Link href="/record">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
                 すべての記録 <ChevronRight className="w-3 h-3 ml-1" />
               </Button>
             </Link>
@@ -207,7 +207,7 @@ export function DashboardClient({ exercises, personalRecords, recentFeedback, la
                   <Video className="w-8 h-8 text-muted-foreground/30 mx-auto" />
                   <p className="text-xs text-muted-foreground">まだフォームチェックがありません</p>
                   <Link href="/form">
-                    <Button size="sm" variant="outline" className="text-xs mt-1 h-7">チェックする</Button>
+                    <Button size="sm" variant="outline" className="text-xs mt-1">チェックする</Button>
                   </Link>
                 </CardContent>
               </Card>

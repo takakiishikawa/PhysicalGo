@@ -9,9 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
-  Camera, Upload, Info, Loader2, Play, CheckCircle2,
+  Camera, Upload, Info, Play, CheckCircle2,
   Dumbbell, ArrowUpToLine, Zap, X, ListChecks
 } from 'lucide-react'
+import { PageHeader, Spinner } from '@takaki/go-design-system'
 import type { Exercise } from '@/types'
 
 interface Props { exercises: Exercise[]; userId: string }
@@ -69,10 +70,10 @@ export function FormClient({ exercises }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">フォームチェック</h1>
-        <p className="text-sm text-muted-foreground mt-1">動画をアップロードするとAIがフォームを詳細に分析します</p>
-      </div>
+      <PageHeader
+        title="フォームチェック"
+        description="動画をアップロードするとAIがフォームを詳細に分析します"
+      />
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left: Upload + Settings */}
@@ -153,9 +154,9 @@ export function FormClient({ exercises }: Props) {
 
           {/* Analyze Button */}
           <Button onClick={handleAnalyze} disabled={loading || !selectedExercise || !videoFile}
-            className="w-full h-12 gap-2">
+            size="lg" className="w-full gap-2">
             {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" />{loadingStep}</>
+              <><Spinner size="sm" />{loadingStep}</>
             ) : (
               <><Play className="w-4 h-4" />AIでフォームを解析する</>
             )}

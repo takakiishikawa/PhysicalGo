@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Columns2, Video, Dumbbell, ArrowUpToLine, Zap } from 'lucide-react'
+import { PageHeader, EmptyState } from '@takaki/go-design-system'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import type { Exercise, FormSession } from '@/types'
@@ -23,6 +25,7 @@ const EXERCISE_META: Record<string, { icon: React.ElementType; colorVar: string 
 }
 
 export function ArchiveClient({ exercises, sessions, feedbacks }: Props) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState(exercises[0]?.name ?? '')
   const [compareMode, setCompareMode] = useState(false)
   const [selected, setSelected] = useState<string[]>([])
@@ -41,21 +44,21 @@ export function ArchiveClient({ exercises, sessions, feedbacks }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">フォームアーカイブ</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">過去のフォームチェックを振り返ろう</p>
-        </div>
-        <Button
-          variant={compareMode ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => { setCompareMode(!compareMode); setSelected([]) }}
-          className="gap-1.5"
-        >
-          <Columns2 className="w-3.5 h-3.5" />
-          {compareMode ? '比較中' : '比較する'}
-        </Button>
-      </div>
+      <PageHeader
+        title="フォームアーカイブ"
+        description="過去のフォームチェックを振り返ろう"
+        actions={
+          <Button
+            variant={compareMode ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => { setCompareMode(!compareMode); setSelected([]) }}
+            className="gap-1.5"
+          >
+            <Columns2 className="w-3.5 h-3.5" />
+            {compareMode ? '比較中' : '比較する'}
+          </Button>
+        }
+      />
 
       {/* Compare hint */}
       {compareMode && (
@@ -121,15 +124,11 @@ export function ArchiveClient({ exercises, sessions, feedbacks }: Props) {
 
             {/* Grid */}
             {filteredSessions.length === 0 ? (
-              <div className="text-center py-20 space-y-3">
-                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto">
-                  <Video className="w-8 h-8 text-muted-foreground/30" />
-                </div>
-                <p className="text-sm font-medium text-muted-foreground">まだフォームチェックがありません</p>
-                <Link href="/form">
-                  <Button size="sm" className="mt-1">フォームチェックする</Button>
-                </Link>
-              </div>
+              <EmptyState
+                icon={<Video className="w-10 h-10" />}
+                title="まだフォームチェックがありません"
+                action={{ label: 'フォームチェックする', onClick: () => router.push('/form') }}
+              />
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
                 {filteredSessions.map(session => {

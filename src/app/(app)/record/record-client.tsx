@@ -15,6 +15,7 @@ import {
   ArrowUpToLine, Zap, TrendingUp, History, CheckCircle2, Plus,
   Pencil, Trash2, Check, X
 } from 'lucide-react'
+import { PageHeader, EmptyState, Spinner } from '@takaki/go-design-system'
 import type { Exercise, PersonalRecord } from '@/types'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -166,10 +167,7 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
     <div className="max-w-6xl mx-auto space-y-6">
       {showConfetti && <ConfettiComponent />}
 
-      <div>
-        <h1 className="text-2xl font-semibold">自己ベスト記録</h1>
-        <p className="text-sm text-muted-foreground mt-1">種目を選んで記録を残そう</p>
-      </div>
+      <PageHeader title="自己ベスト記録" description="種目を選んで記録を残そう" />
 
       {/* PR Banner */}
       {prResult && (
@@ -194,9 +192,9 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
               <p className="text-sm text-foreground/70 font-medium">今日も積み上げた</p>
             </>
           )}
-          <button onClick={() => setPrResult(null)} className="ml-auto text-muted-foreground p-1">
+          <Button variant="ghost" size="icon" onClick={() => setPrResult(null)} className="ml-auto w-8 h-8">
             <ChevronUp className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -274,9 +272,9 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
                       </div>
                     </div>
                   )}
-                  <Button onClick={handleSubmit} disabled={loading} className="w-full h-11">
-                    {loading ? '記録中...' : (
-                      <span className="flex items-center gap-2"><Plus className="w-4 h-4" />記録する</span>
+                  <Button onClick={handleSubmit} disabled={loading} className="w-full" size="lg">
+                    {loading ? <><Spinner size="sm" />記録中...</> : (
+                      <><Plus className="w-4 h-4" />記録する</>
                     )}
                   </Button>
                 </CardContent>
@@ -346,13 +344,13 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={cancelEdit}>
+                                  <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEdit}>
                                     <X className="w-3 h-3 mr-1" />キャンセル
                                   </Button>
-                                  <Button size="sm" className="flex-1 h-8 text-xs"
+                                  <Button size="sm" className="flex-1 text-xs"
                                     onClick={() => handleUpdate(isPullUp)} disabled={editLoading}>
-                                    {editLoading ? '更新中...' : (
-                                      <span className="flex items-center gap-1"><Check className="w-3 h-3" />保存</span>
+                                    {editLoading ? <><Spinner size="sm" />更新中...</> : (
+                                      <><Check className="w-3 h-3" />保存</>
                                     )}
                                   </Button>
                                 </div>
@@ -367,18 +365,12 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
                                   {r.is_pr && <Star className="w-3 h-3 fill-warning text-warning" />}
                                 </div>
                                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => startEdit(r, isPullUp)}
-                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                                  >
+                                  <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground" onClick={() => startEdit(r, isPullUp)}>
                                     <Pencil className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(r.id)}
-                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                                  >
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(r.id)}>
                                     <Trash2 className="w-3 h-3" />
-                                  </button>
+                                  </Button>
                                 </div>
                               </div>
                             )}
@@ -392,11 +384,12 @@ export function RecordClient({ exercises, personalRecords, userId }: Props) {
             )
           })}
           {exercises.every(ex => getExerciseRecords(ex.id).length === 0) && (
-            <div className="text-center py-16 text-muted-foreground">
-              <TrendingUp className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">まだ記録がありません</p>
-              <p className="text-xs mt-1">左から種目を選んで最初の記録をしよう</p>
-            </div>
+            <EmptyState
+              icon={<TrendingUp className="w-10 h-10" />}
+              title="まだ記録がありません"
+              description="左から種目を選んで最初の記録をしよう"
+              className="py-16"
+            />
           )}
         </div>
       </div>

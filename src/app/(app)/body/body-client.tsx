@@ -12,6 +12,7 @@ import {
   Scale, Plus, Camera, TrendingDown, TrendingUp,
   CalendarDays, ImageIcon, BarChart3, X, Pencil, Trash2, Check
 } from 'lucide-react'
+import { PageHeader, EmptyState, Spinner } from '@takaki/go-design-system'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import {
@@ -144,15 +145,15 @@ export function BodyClient({ bodyRecords, userId }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">ボディデータ</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">体重・体脂肪率の定点観測</p>
-        </div>
-        <Button size="sm" onClick={() => setShowForm(!showForm)} className="gap-1.5">
-          <Plus className="w-3.5 h-3.5" />記録する
-        </Button>
-      </div>
+      <PageHeader
+        title="ボディデータ"
+        description="体重・体脂肪率の定点観測"
+        actions={
+          <Button size="sm" onClick={() => setShowForm(!showForm)} className="gap-1.5">
+            <Plus className="w-3.5 h-3.5" />記録する
+          </Button>
+        }
+      />
 
       {/* Stats */}
       {latest && (
@@ -229,9 +230,9 @@ export function BodyClient({ bodyRecords, userId }: Props) {
                 <Scale className="w-4 h-4 text-primary" />
                 新規記録
               </CardTitle>
-              <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="w-7 h-7 text-muted-foreground">
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4 space-y-4">
@@ -269,9 +270,9 @@ export function BodyClient({ bodyRecords, userId }: Props) {
               </label>
             </div>
             <div className="flex gap-2 pt-1">
-              <Button variant="outline" className="flex-1" onClick={() => setShowForm(false)}>キャンセル</Button>
-              <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
-                {loading ? '記録中...' : '記録する'}
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => setShowForm(false)}>キャンセル</Button>
+              <Button size="sm" className="flex-1" onClick={handleSubmit} disabled={loading}>
+                {loading ? <><Spinner size="sm" />記録中...</> : '記録する'}
               </Button>
             </div>
           </CardContent>
@@ -279,13 +280,12 @@ export function BodyClient({ bodyRecords, userId }: Props) {
       )}
 
       {bodyRecords.length === 0 && !showForm ? (
-        <div className="text-center py-20 space-y-3">
-          <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto">
-            <Scale className="w-8 h-8 text-muted-foreground/30" />
-          </div>
-          <p className="text-sm font-medium text-muted-foreground">まだ記録がありません</p>
-          <Button size="sm" className="mt-1" onClick={() => setShowForm(true)}>最初の記録をする</Button>
-        </div>
+        <EmptyState
+          icon={<Scale className="w-10 h-10" />}
+          title="まだ記録がありません"
+          description="体重・体脂肪率を継続的に記録しよう"
+          action={{ label: '最初の記録をする', onClick: () => setShowForm(true) }}
+        />
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
           {/* Charts */}
@@ -381,11 +381,11 @@ export function BodyClient({ bodyRecords, userId }: Props) {
                                 onChange={e => setEditNote(e.target.value)} className="h-9 text-sm" />
                             </div>
                             <div className="flex gap-2">
-                              <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={cancelEdit}>キャンセル</Button>
-                              <Button size="sm" className="flex-1 h-8 text-xs"
+                              <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEdit}>キャンセル</Button>
+                              <Button size="sm" className="flex-1 text-xs"
                                 onClick={handleUpdate} disabled={editLoading}>
-                                {editLoading ? '更新中...' : (
-                                  <span className="flex items-center gap-1"><Check className="w-3 h-3" />保存</span>
+                                {editLoading ? <><Spinner size="sm" />更新中...</> : (
+                                  <><Check className="w-3 h-3" />保存</>
                                 )}
                               </Button>
                             </div>
@@ -411,18 +411,12 @@ export function BodyClient({ bodyRecords, userId }: Props) {
                               )}
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => startEdit(r)}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                              >
+                              <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground" onClick={() => startEdit(r)}>
                                 <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(r.id)}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                              >
+                              </Button>
+                              <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(r.id)}>
                                 <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         )}
