@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -16,7 +16,7 @@ import {
   SidebarRail,
   AppSwitcher,
   type AppInfo,
-} from "@takaki/go-design-system"
+} from "@takaki/go-design-system";
 import {
   Dumbbell,
   LayoutDashboard,
@@ -25,8 +25,8 @@ import {
   Scale,
   Settings,
   Video,
-} from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const MAIN_NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
@@ -75,13 +75,13 @@ export function PhysicalGoSidebar() {
   }, [])
 
   function isActive(href: string) {
-    return pathname === href || pathname.startsWith(href + "/")
+    return pathname === href || pathname.startsWith(href + "/");
   }
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
   }
 
   return (
@@ -164,5 +164,5 @@ export function PhysicalGoSidebar() {
 
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

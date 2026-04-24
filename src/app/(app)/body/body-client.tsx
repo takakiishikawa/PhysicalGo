@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -18,7 +18,10 @@ import { subDays, format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import type { BodyRecord } from '@/types'
 
-interface Props { bodyRecords: BodyRecord[]; userId: string }
+interface Props {
+  bodyRecords: BodyRecord[];
+  userId: string;
+}
 
 export function BodyClient({ bodyRecords, userId }: Props) {
   const router = useRouter()
@@ -46,7 +49,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
     date: r.recorded_at,
     weight: r.weight_kg ?? undefined,
     bodyFat: r.body_fat_pct ?? undefined,
-  }))
+  }));
 
   const latestWeight = sorted.filter(r => r.weight_kg != null).at(-1)
   const latestFat = sorted.filter(r => r.body_fat_pct != null).at(-1)
@@ -78,8 +81,11 @@ export function BodyClient({ bodyRecords, userId }: Props) {
   ]
 
   const handleSubmit = async () => {
-    if (!weightInput && !bodyFatInput) { toast.error('体重または体脂肪率を入力してください'); return }
-    setLoading(true)
+    if (!weightInput && !bodyFatInput) {
+      toast.error("体重または体脂肪率を入力してください");
+      return;
+    }
+    setLoading(true);
     try {
       const { error } = await supabase.schema('physicalgo').from('body_records').insert({
         user_id: userId,
@@ -92,11 +98,11 @@ export function BodyClient({ bodyRecords, userId }: Props) {
       setWeightInput(''); setBodyFatInput(''); setDateInput(todayStr())
       router.refresh()
     } catch (e: any) {
-      toast.error(e.message ?? '記録に失敗しました')
+      toast.error(e.message ?? "記録に失敗しました");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const startEdit = (r: BodyRecord) => {
     setEditingId(r.id)
@@ -124,7 +130,28 @@ export function BodyClient({ bodyRecords, userId }: Props) {
     } finally {
       setEditLoading(false)
     }
-  }
+    setEditLoading(true);
+    try {
+      const { error } = await supabase
+        .schema("physicalgo")
+        .from("body_records")
+        .update({
+          weight_kg: editWeight ? Number(editWeight) : null,
+          body_fat_pct: editFat ? Number(editFat) : null,
+          note: editNote || null,
+          recorded_at: toLocalIso(editDate),
+        })
+        .eq("id", editingId);
+      if (error) throw error;
+      toast.success("更新しました");
+      setEditingId(null);
+      router.refresh();
+    } catch (e: any) {
+      toast.error(e.message ?? "更新に失敗しました");
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   const handleDelete = (id: string) => {
     confirmDelete(async () => {

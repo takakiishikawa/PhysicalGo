@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -19,12 +19,12 @@ import { useDeleteConfirm } from '@/hooks/use-delete-confirm'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
-const ConfettiComponent = dynamic(() => import('./confetti'), { ssr: false })
+const ConfettiComponent = dynamic(() => import("./confetti"), { ssr: false });
 
 interface Props {
-  exercises: Exercise[]
-  personalRecords: PersonalRecord[]
-  userId: string
+  exercises: Exercise[];
+  personalRecords: PersonalRecord[];
+  userId: string;
 }
 
 export function RecordClient({ exercises, personalRecords }: Props) {
@@ -44,16 +44,22 @@ export function RecordClient({ exercises, personalRecords }: Props) {
   const [editReps, setEditReps] = useState('')
   const [editLoading, setEditLoading] = useState(false)
 
-  const getExerciseRecords = useCallback((exerciseId: string) =>
-    personalRecords.filter(r => r.exercise_id === exerciseId), [personalRecords])
+  const getExerciseRecords = useCallback(
+    (exerciseId: string) =>
+      personalRecords.filter((r) => r.exercise_id === exerciseId),
+    [personalRecords],
+  );
 
-  const getLatestPR = useCallback((exerciseId: string, isPullUp: boolean) => {
-    const records = getExerciseRecords(exerciseId)
-    if (records.length === 0) return null
-    return isPullUp
-      ? Math.max(...records.map(r => r.reps ?? 0))
-      : Math.max(...records.map(r => r.weight_kg ?? 0))
-  }, [getExerciseRecords])
+  const getLatestPR = useCallback(
+    (exerciseId: string, isPullUp: boolean) => {
+      const records = getExerciseRecords(exerciseId);
+      if (records.length === 0) return null;
+      return isPullUp
+        ? Math.max(...records.map((r) => r.reps ?? 0))
+        : Math.max(...records.map((r) => r.weight_kg ?? 0));
+    },
+    [getExerciseRecords],
+  );
 
   const handleSubmit = async (ex: Exercise) => {
     const isPullUp = ex.name === EXERCISE_NAMES.PULL_UP
@@ -61,15 +67,15 @@ export function RecordClient({ exercises, personalRecords }: Props) {
     if (!value || value <= 0) { toast.error('値を入力してください'); return }
     setLoading(true)
     try {
-      const res = await fetch('/api/record/pr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/record/pr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           exercise_id: ex.id,
           exercise_name: ex.name,
           weight_kg: isPullUp ? null : value,
           reps: isPullUp ? value : null,
-          record_type: isPullUp ? 'max_reps' : 'weight_5rep',
+          record_type: isPullUp ? "max_reps" : "weight_5rep",
           recorded_at: toLocalIso(recordDate),
         }),
       })
@@ -92,40 +98,47 @@ export function RecordClient({ exercises, personalRecords }: Props) {
       setWeightInput(''); setRepsInput('')
       router.refresh()
     } catch (e: any) {
-      toast.error(e.message ?? '記録に失敗しました')
+      toast.error(e.message ?? "記録に失敗しました");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const startEdit = (r: PersonalRecord) => {
-    setEditingId(r.id)
-    setEditDate(format(new Date(r.recorded_at), 'yyyy-MM-dd'))
-    setEditWeight(r.weight_kg?.toString() ?? '')
-    setEditReps(r.reps?.toString() ?? '')
-  }
+    setEditingId(r.id);
+    setEditDate(format(new Date(r.recorded_at), "yyyy-MM-dd"));
+    setEditWeight(r.weight_kg?.toString() ?? "");
+    setEditReps(r.reps?.toString() ?? "");
+  };
 
   const handleUpdate = async (isPullUp: boolean) => {
-    if (!editingId) return
-    const value = isPullUp ? Number(editReps) : Number(editWeight)
-    if (!value || value <= 0) { toast.error('値を入力してください'); return }
-    setEditLoading(true)
-    try {
-      const { error } = await supabase.schema('physicalgo').from('personal_records').update({
-        weight_kg: isPullUp ? null : value,
-        reps: isPullUp ? value : null,
-        recorded_at: toLocalIso(editDate),
-      }).eq('id', editingId)
-      if (error) throw error
-      toast.success('更新しました')
-      setEditingId(null)
-      router.refresh()
-    } catch (e: any) {
-      toast.error(e.message ?? '更新に失敗しました')
-    } finally {
-      setEditLoading(false)
+    if (!editingId) return;
+    const value = isPullUp ? Number(editReps) : Number(editWeight);
+    if (!value || value <= 0) {
+      toast.error("値を入力してください");
+      return;
     }
-  }
+    setEditLoading(true);
+    try {
+      const { error } = await supabase
+        .schema("physicalgo")
+        .from("personal_records")
+        .update({
+          weight_kg: isPullUp ? null : value,
+          reps: isPullUp ? value : null,
+          recorded_at: toLocalIso(editDate),
+        })
+        .eq("id", editingId);
+      if (error) throw error;
+      toast.success("更新しました");
+      setEditingId(null);
+      router.refresh();
+    } catch (e: any) {
+      toast.error(e.message ?? "更新に失敗しました");
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   const handleDelete = (id: string) => {
     confirmDelete(async () => {

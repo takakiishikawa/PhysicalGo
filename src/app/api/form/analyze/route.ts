@@ -5,14 +5,17 @@ import type { AIFeedback } from '@/types'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-})
+});
 
 export const maxDuration = 60
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const formData = await request.formData()
   const videoFile = formData.get('video') as File | null
@@ -52,17 +55,19 @@ export async function POST(request: Request) {
     .upload(videoPath, videoBuffer, {
       contentType: videoFile.type,
       upsert: false,
-    })
+    });
 
   if (uploadError) {
-    console.error('Upload error:', uploadError)
-    return NextResponse.json({ error: `動画のアップロードに失敗しました: ${uploadError.message}` }, { status: 500 })
+    console.error("Upload error:", uploadError);
+    return NextResponse.json(
+      { error: `動画のアップロードに失敗しました: ${uploadError.message}` },
+      { status: 500 },
+    );
   }
 
-  const { data: { publicUrl: videoUrl } } = supabase
-    .storage
-    .from('physicalgo')
-    .getPublicUrl(videoPath)
+  const {
+    data: { publicUrl: videoUrl },
+  } = supabase.storage.from("physicalgo").getPublicUrl(videoPath);
 
   const prevContext = prevFeedbacks?.length
     ? prevFeedbacks.map(f => {
@@ -99,7 +104,7 @@ ${prevContext}
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
       messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }],
     })
@@ -117,9 +122,9 @@ ${prevContext}
       strengths: ['継続的なトレーニングへの取り組み'],
       improvements: ['動画の画質を上げると、より詳細な分析が可能です'],
       checkpoints: {},
-      previous_comparison: '',
-      diagram_instruction: '',
-    }
+      previous_comparison: "",
+      diagram_instruction: "",
+    };
   }
 
   // Find exercise by AI's response
@@ -142,8 +147,8 @@ ${prevContext}
   if (sessionError) return NextResponse.json({ error: sessionError.message }, { status: 500 })
 
   const { data: feedback, error: feedbackError } = await supabase
-    .schema('physicalgo')
-    .from('form_feedbacks')
+    .schema("physicalgo")
+    .from("form_feedbacks")
     .insert({
       session_id: session.id,
       user_id: user.id,
@@ -156,9 +161,13 @@ ${prevContext}
       diagram_url: null,
     })
     .select()
-    .single()
+    .single();
 
-  if (feedbackError) return NextResponse.json({ error: feedbackError.message }, { status: 500 })
+  if (feedbackError)
+    return NextResponse.json({ error: feedbackError.message }, { status: 500 });
 
-  return NextResponse.json({ session_id: session.id, feedback_id: feedback.id })
+  return NextResponse.json({
+    session_id: session.id,
+    feedback_id: feedback.id,
+  });
 }
