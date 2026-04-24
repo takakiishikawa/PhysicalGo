@@ -138,7 +138,6 @@ export function BodyClient({ bodyRecords, userId }: Props) {
         .update({
           weight_kg: editWeight ? Number(editWeight) : null,
           body_fat_pct: editFat ? Number(editFat) : null,
-          note: editNote || null,
           recorded_at: toLocalIso(editDate),
         })
         .eq("id", editingId);

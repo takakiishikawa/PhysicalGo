@@ -61,35 +61,7 @@ export function FormClient({ sessions, feedbacks }: Props) {
     } finally {
       setLoading(false); setLoadingStep('')
     }
-    if (!videoFile) {
-      toast.error("動画を選択してください");
-      return;
-    }
-    setLoading(true);
-    setLoadingStep("動画をアップロード中...");
-    try {
-      const formData = new FormData();
-      formData.append("video", videoFile);
-      formData.append("exercise_id", selectedExercise.id);
-      formData.append("exercise_name", selectedExercise.name);
-      if (weightInput) formData.append("weight_kg", weightInput);
-      if (repsInput) formData.append("reps", repsInput);
-      setLoadingStep("AIがフォームを解析中...");
-      const res = await fetch("/api/form/analyze", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      toast.success("フォームチェック完了");
-      router.push(`/form/${data.session_id}`);
-    } catch (e: any) {
-      toast.error(e.message ?? "解析に失敗しました");
-    } finally {
-      setLoading(false);
-      setLoadingStep("");
-    }
-  };
+  }
 
   return (
     <PageShell title="フォーム">
