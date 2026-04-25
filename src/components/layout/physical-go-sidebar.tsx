@@ -15,13 +15,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
   AppSwitcher,
+  UserMenu,
   type AppInfo,
 } from "@takaki/go-design-system";
 import {
   Dumbbell,
   LayoutDashboard,
   Lightbulb,
-  LogOut,
   Scale,
   Settings,
   Video,
@@ -33,11 +33,6 @@ const MAIN_NAV = [
   { href: "/record", icon: Dumbbell, label: "記録" },
   { href: "/form", icon: Video, label: "フォーム" },
   { href: "/body", icon: Scale, label: "ボディ" },
-];
-
-const FOOTER_NAV = [
-  { href: "/concept", icon: Lightbulb, label: "コンセプト" },
-  { href: "/settings", icon: Settings, label: "設定" },
 ];
 
 const GO_APPS: AppInfo[] = [
@@ -65,7 +60,7 @@ const GO_APPS: AppInfo[] = [
   {
     name: "PhysicalGo",
     url: "https://physical-go.vercel.app/dashboard",
-    color: "#0052CC",
+    color: "#0891b2",
   },
   {
     name: "Design System",
@@ -141,56 +136,26 @@ export function PhysicalGoSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
-        <SidebarMenu>
-          {FOOTER_NAV.map(({ href, icon: Icon, label }) => (
-            <SidebarMenuItem key={href}>
-              <SidebarMenuButton asChild isActive={isActive(href)}>
-                <Link href={href}>
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-          {userProfile && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/settings" className="flex items-center gap-2.5">
-                  {userProfile.avatar ? (
-                    <img
-                      src={userProfile.avatar}
-                      alt=""
-                      className="w-6 h-6 rounded-full shrink-0 object-cover"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-semibold text-primary">
-                        {userProfile.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">
-                      {userProfile.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {userProfile.email}
-                    </p>
-                  </div>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleSignOut}
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-            >
-              <LogOut className="w-4 h-4" />
-              ログアウト
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <UserMenu
+          displayName={userProfile?.name ?? "—"}
+          email={userProfile?.email}
+          avatarUrl={userProfile?.avatar}
+          items={[
+            {
+              title: "コンセプト",
+              icon: Lightbulb,
+              onSelect: () => router.push("/concept"),
+              isActive: isActive("/concept"),
+            },
+            {
+              title: "設定",
+              icon: Settings,
+              onSelect: () => router.push("/settings"),
+              isActive: isActive("/settings"),
+            },
+          ]}
+          signOut={{ onSelect: handleSignOut }}
+        />
       </SidebarFooter>
 
       <SidebarRail />
