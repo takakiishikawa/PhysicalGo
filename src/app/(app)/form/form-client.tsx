@@ -208,7 +208,7 @@ export function FormClient({ sessions, feedbacks }: Props) {
         <div className="relative p-5 md:p-8">
           {videoPreview ? (
             <div className="grid md:grid-cols-2 gap-6 items-start">
-              <div className="relative rounded-lg overflow-hidden bg-black aspect-video shadow-lg">
+              <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
                 <video
                   src={videoPreview}
                   className="w-full h-full object-contain"

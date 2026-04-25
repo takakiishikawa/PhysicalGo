@@ -233,7 +233,7 @@ export function FeedbackClient({ session, feedback, pastSessions }: Props) {
         {/* Left: Video + past sessions (sticky on desktop) */}
         <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           {session.video_url ? (
-            <div className="rounded-lg overflow-hidden bg-black aspect-video border border-border shadow-sm">
+            <div className="rounded-lg overflow-hidden bg-black aspect-video border border-border">
               <video
                 src={session.video_url}
                 className="w-full h-full object-contain"
