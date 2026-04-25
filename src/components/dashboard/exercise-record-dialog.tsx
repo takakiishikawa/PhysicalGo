@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import {
@@ -15,6 +14,7 @@ import {
   Button,
   Input,
   Label,
+  toast,
 } from "@takaki/go-design-system";
 import { Plus, Star, Pencil, Trash2, Check, X, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";

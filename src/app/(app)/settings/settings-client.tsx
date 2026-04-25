@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import {
   Button,
@@ -11,6 +10,7 @@ import {
   SettingsPage,
   SettingsGroup,
   SettingsItem,
+  toast,
 } from "@takaki/go-design-system";
 import { User, Scale, Info } from "lucide-react";
 import Link from "next/link";

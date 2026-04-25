@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Columns2, Video, Archive, Trash2 } from "lucide-react";
 import {
   Badge,
@@ -22,6 +21,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  toast,
 } from "@takaki/go-design-system";
 import { TabsList } from "@/components/ui/tabs";
 import { PageShell } from "@/components/layout/page-shell";

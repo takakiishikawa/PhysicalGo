@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Scale, Plus } from "lucide-react";
 import {
@@ -12,6 +11,7 @@ import {
   SectionCards,
   EmptyState,
   Spinner,
+  toast,
   type KpiCard,
 } from "@takaki/go-design-system";
 import { PageShell } from "@/components/layout/page-shell";

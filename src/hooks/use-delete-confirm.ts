@@ -1,6 +1,6 @@
 "use client";
 
-import { toast } from "sonner";
+import { toast } from "@takaki/go-design-system";
 
 export function useDeleteConfirm() {
   function confirmDelete(onConfirm: () => Promise<void>) {
