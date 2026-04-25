@@ -19,7 +19,6 @@ import {
   type AppInfo,
 } from "@takaki/go-design-system";
 import {
-  Dumbbell,
   LayoutDashboard,
   Lightbulb,
   Scale,
@@ -30,7 +29,6 @@ import { createClient } from "@/lib/supabase/client";
 
 const MAIN_NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
-  { href: "/record", icon: Dumbbell, label: "記録" },
   { href: "/form", icon: Video, label: "フォーム" },
   { href: "/body", icon: Scale, label: "ボディ" },
 ];

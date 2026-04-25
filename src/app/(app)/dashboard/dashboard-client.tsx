@@ -1,19 +1,26 @@
 "use client";
 
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   SectionCards,
-  ChartArea,
   Section,
   EmptyState,
   type KpiCard,
 } from "@takaki/go-design-system";
+import { LayoutDashboard, Plus } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
+import { MetricChart } from "@/components/ui/metric-chart";
+import { ExerciseRecordDialog } from "@/components/dashboard/exercise-record-dialog";
 import type { Exercise, PersonalRecord } from "@/types";
 import { EXERCISE_META, EXERCISE_NAMES } from "@/lib/exercise-meta";
 import { format, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
+
+const ConfettiComponent = dynamic(
+  () => import("@/components/dashboard/confetti"),
+  { ssr: false },
+);
 
 interface Props {
   exercises: Exercise[];
@@ -21,21 +28,24 @@ interface Props {
 }
 
 export function DashboardClient({ exercises, personalRecords }: Props) {
-  const router = useRouter();
   const oneMonthAgo = useMemo(() => subDays(new Date(), 30), []);
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const exerciseData = useMemo(() => {
     return exercises.map((ex) => {
       const isPullUp = ex.name === EXERCISE_NAMES.PULL_UP;
       const meta = EXERCISE_META[ex.name] ?? EXERCISE_META.half_deadlift;
 
-      const sorted = personalRecords
-        .filter((r) => r.exercise_id === ex.id)
-        .sort(
-          (a, b) =>
-            new Date(a.recorded_at).getTime() -
-            new Date(b.recorded_at).getTime(),
-        );
+      const exerciseRecords = personalRecords.filter(
+        (r) => r.exercise_id === ex.id,
+      );
+
+      const sorted = [...exerciseRecords].sort(
+        (a, b) =>
+          new Date(a.recorded_at).getTime() -
+          new Date(b.recorded_at).getTime(),
+      );
 
       const chartData = sorted
         .filter((r) => (isPullUp ? r.reps != null : r.weight_kg != null))
@@ -48,8 +58,6 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
       const oldVal =
         [...chartData].filter((d) => new Date(d.date) <= oneMonthAgo).at(-1)
           ?.value ?? null;
-      const diff =
-        currentVal !== null && oldVal !== null ? currentVal - oldVal : null;
       const unit = isPullUp ? "回" : "kg";
 
       return {
@@ -59,43 +67,54 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
         meta,
         currentVal,
         oldVal,
-        diff,
         unit,
+        exerciseRecords,
       };
     });
   }, [exercises, personalRecords, oneMonthAgo]);
 
+  const activeExercise = exerciseData.find(
+    (d) => d.exercise.id === activeExerciseId,
+  );
+
   const kpiCards: KpiCard[] = exerciseData.map(
-    ({ exercise, currentVal, oldVal, diff, unit, meta }) => {
+    ({ exercise, currentVal, oldVal, unit, meta }) => {
       const Icon = meta.icon;
-      let trend: KpiCard["trend"];
-      if (diff !== null) {
-        const sign = diff > 0 ? "+" : "";
-        trend = {
-          value: diff === 0 ? "変化なし" : `${sign}${diff}${unit}`,
-          direction: diff > 0 ? "up" : diff < 0 ? "down" : "neutral",
-        };
-      }
       return {
         title: exercise.name_ja,
         value: currentVal !== null ? `${currentVal}${unit}` : "未記録",
         description:
           oldVal !== null ? `1ヶ月前: ${oldVal}${unit}` : "比較データなし",
-        trend,
         icon: <Icon className="w-4 h-4" style={{ color: meta.colorVar }} />,
+        actions: (
+          <button
+            type="button"
+            onClick={() => setActiveExerciseId(exercise.id)}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+            aria-label={`${exercise.name_ja} を記録`}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        ),
       };
     },
   );
 
   return (
-    <PageShell title="ダッシュボード">
+    <PageShell
+      title="ダッシュボード"
+      icon={<LayoutDashboard className="w-6 h-6" />}
+    >
+      {showConfetti && <ConfettiComponent />}
+
       <SectionCards cards={kpiCards} />
 
       <div className="space-y-6">
         {exerciseData.map(({ exercise, isPullUp, chartData, meta }) =>
           chartData.length > 1 ? (
-            <ChartArea
+            <MetricChart
               key={exercise.id}
+              title={exercise.name_ja}
               data={chartData}
               config={{
                 value: {
@@ -104,9 +123,8 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
                 },
               }}
               xKey="date"
-              yKeys={["value"]}
-              title={exercise.name_ja}
-              filterByDate={false}
+              yKey="value"
+              yUnit={isPullUp ? "回" : "kg"}
               xTickFormatter={(v) => format(new Date(v), "M/d")}
               tooltipLabelFormatter={(v) =>
                 format(new Date(v), "M月d日", { locale: ja })
@@ -129,13 +147,26 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
                 description="記録を追加するとグラフが表示されます"
                 action={{
                   label: "記録する",
-                  onClick: () => router.push("/record"),
+                  onClick: () => setActiveExerciseId(exercise.id),
                 }}
               />
             </Section>
           ),
         )}
       </div>
+
+      {activeExercise && (
+        <ExerciseRecordDialog
+          exercise={activeExercise.exercise}
+          records={activeExercise.exerciseRecords}
+          open={activeExerciseId !== null}
+          onOpenChange={(open) => !open && setActiveExerciseId(null)}
+          onPrCreated={() => {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
+          }}
+        />
+      )}
     </PageShell>
   );
 }

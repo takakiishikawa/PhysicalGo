@@ -82,7 +82,7 @@ export function FormClient({ sessions, feedbacks }: Props) {
   };
 
   return (
-    <PageShell title="フォーム">
+    <PageShell title="フォーム" icon={<Video className="w-6 h-6" />}>
       <input
         ref={fileRef}
         type="file"

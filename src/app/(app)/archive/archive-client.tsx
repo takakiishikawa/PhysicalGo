@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Columns2, Video } from "lucide-react";
+import { Columns2, Video, Archive } from "lucide-react";
 import { Banner, Section, EmptyState } from "@takaki/go-design-system";
 import { PageShell } from "@/components/layout/page-shell";
 import { format } from "date-fns";
@@ -50,6 +50,7 @@ export function ArchiveClient({ exercises, sessions, feedbacks }: Props) {
   return (
     <PageShell
       title="フォームアーカイブ"
+      icon={<Archive className="w-6 h-6" />}
       description="過去のフォームチェックを振り返ろう"
       actions={
         <Button

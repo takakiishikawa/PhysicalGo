@@ -6,7 +6,7 @@ import confetti from "canvas-confetti";
 export default function Confetti() {
   useEffect(() => {
     const end = Date.now() + 2000;
-    const colors = ["#2563B0", "#E8A030", "#10b981"];
+    const colors = ["#0891b2", "#2563B0", "#10b981"];
 
     const frame = () => {
       confetti({
