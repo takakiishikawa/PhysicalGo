@@ -11,6 +11,11 @@ import {
   SectionCards,
   EmptyState,
   Spinner,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
   toast,
   type KpiCard,
 } from "@takaki/go-design-system";
@@ -30,6 +35,7 @@ export function BodyClient({ bodyRecords, userId }: Props) {
   const router = useRouter();
   const supabase = createClient();
 
+  const [recordOpen, setRecordOpen] = useState(false);
   const [dateInput, setDateInput] = useState(todayStr());
   const [weightInput, setWeightInput] = useState("");
   const [bodyFatInput, setBodyFatInput] = useState("");
@@ -94,6 +100,12 @@ export function BodyClient({ bodyRecords, userId }: Props) {
       : []),
   ];
 
+  const resetForm = () => {
+    setWeightInput("");
+    setBodyFatInput("");
+    setDateInput(todayStr());
+  };
+
   const handleSubmit = async () => {
     if (!weightInput && !bodyFatInput) {
       toast.error("体重または体脂肪率を入力してください");
@@ -112,82 +124,39 @@ export function BodyClient({ bodyRecords, userId }: Props) {
         });
       if (error) throw error;
       toast.success("記録しました");
-      setWeightInput("");
-      setBodyFatInput("");
-      setDateInput(todayStr());
+      resetForm();
+      setRecordOpen(false);
       router.refresh();
-    } catch (e: any) {
-      toast.error(e.message ?? "記録に失敗しました");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "記録に失敗しました");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <PageShell title="ボディ" icon={<Scale className="w-6 h-6" />}>
-      {/* Inline add form */}
-      <div className="bg-muted/40 rounded-lg border border-border p-4">
-        <div className="flex flex-wrap gap-3 items-end">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">記録日</Label>
-            <Input
-              type="date"
-              value={dateInput}
-              onChange={(e) => setDateInput(e.target.value)}
-              className="h-9 w-36"
-              max={todayStr()}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">体重 (kg)</Label>
-            <Input
-              type="number"
-              placeholder="例: 72.0"
-              value={weightInput}
-              onChange={(e) => setWeightInput(e.target.value)}
-              inputMode="decimal"
-              className="h-9 w-28"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">
-              体脂肪率 (%)
-            </Label>
-            <Input
-              type="number"
-              placeholder="例: 22.0"
-              value={bodyFatInput}
-              onChange={(e) => setBodyFatInput(e.target.value)}
-              inputMode="decimal"
-              className="h-9 w-28"
-            />
-          </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={loading}
-            size="sm"
-            className="gap-1.5 h-9"
-          >
-            {loading ? (
-              <>
-                <Spinner size="sm" />
-                記録中...
-              </>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5" />
-                記録する
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
+    <PageShell
+      title="ボディ"
+      actions={
+        <Button
+          onClick={() => setRecordOpen(true)}
+          size="sm"
+          className="gap-1.5"
+        >
+          <Plus className="w-4 h-4" />
+          記録する
+        </Button>
+      }
+    >
       {bodyRecords.length === 0 ? (
         <EmptyState
           icon={<Scale className="w-10 h-10" />}
           title="まだ記録がありません"
           description="体重・体脂肪率を継続的に記録しよう"
+          action={{
+            label: "最初の記録を追加",
+            onClick: () => setRecordOpen(true),
+          }}
         />
       ) : (
         <>
@@ -237,6 +206,74 @@ export function BodyClient({ bodyRecords, userId }: Props) {
           </div>
         </>
       )}
+
+      <Dialog open={recordOpen} onOpenChange={setRecordOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>体重・体脂肪を記録</DialogTitle>
+            <DialogDescription>
+              いずれか片方だけでも記録できます
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">記録日</Label>
+              <Input
+                type="date"
+                value={dateInput}
+                onChange={(e) => setDateInput(e.target.value)}
+                className="h-9"
+                max={todayStr()}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  体重 (kg)
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="例: 72.0"
+                  value={weightInput}
+                  onChange={(e) => setWeightInput(e.target.value)}
+                  inputMode="decimal"
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  体脂肪率 (%)
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="例: 22.0"
+                  value={bodyFatInput}
+                  onChange={(e) => setBodyFatInput(e.target.value)}
+                  inputMode="decimal"
+                  className="h-9"
+                />
+              </div>
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full gap-1.5"
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" />
+                  記録中...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  記録する
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }

@@ -12,8 +12,6 @@ import { Fragment } from "react";
 interface PageShellProps {
   title: string;
   description?: string;
-  /** タイトル左に表示するアイコン（lucide-react を推奨） */
-  icon?: React.ReactNode;
   actions?: React.ReactNode;
   breadcrumbs?: BreadcrumbEntry[];
   children: React.ReactNode;
@@ -22,7 +20,6 @@ interface PageShellProps {
 export function PageShell({
   title,
   description,
-  icon,
   actions,
   breadcrumbs,
   children,
@@ -56,13 +53,8 @@ export function PageShell({
           )}
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1 min-w-0">
-              <h1 className="flex items-center gap-2.5 text-2xl font-semibold leading-tight text-foreground">
-                {icon && (
-                  <span className="text-primary inline-flex shrink-0">
-                    {icon}
-                  </span>
-                )}
-                <span className="truncate">{title}</span>
+              <h1 className="text-2xl font-semibold leading-tight text-foreground truncate">
+                {title}
               </h1>
               {description && (
                 <p className="text-sm text-muted-foreground">{description}</p>

@@ -8,7 +8,7 @@ import {
   EmptyState,
   type KpiCard,
 } from "@takaki/go-design-system";
-import { LayoutDashboard, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
 import { MetricChart } from "@/components/ui/metric-chart";
 import { ExerciseRecordDialog } from "@/components/dashboard/exercise-record-dialog";
@@ -89,10 +89,10 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
           <button
             type="button"
             onClick={() => setActiveExerciseId(exercise.id)}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20 hover:bg-primary/90 hover:scale-105 transition-all"
             aria-label={`${exercise.name_ja} を記録`}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
           </button>
         ),
       };
@@ -100,10 +100,7 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
   );
 
   return (
-    <PageShell
-      title="ダッシュボード"
-      icon={<LayoutDashboard className="w-6 h-6" />}
-    >
+    <PageShell title="ダッシュボード">
       {showConfetti && <ConfettiComponent />}
 
       <SectionCards cards={kpiCards} />

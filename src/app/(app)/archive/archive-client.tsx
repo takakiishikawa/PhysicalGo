@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Columns2, Video, Archive, Trash2 } from "lucide-react";
+import { Columns2, Video, Trash2 } from "lucide-react";
 import {
   Badge,
   Button,
@@ -91,7 +91,6 @@ export function ArchiveClient({ exercises, sessions, feedbacks }: Props) {
   return (
     <PageShell
       title="フォームアーカイブ"
-      icon={<Archive className="w-6 h-6" />}
       description="過去のフォームチェックを振り返ろう"
       actions={
         <Button

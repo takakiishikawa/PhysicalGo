@@ -125,7 +125,7 @@ export function FormClient({ sessions, feedbacks }: Props) {
       } = supabase.storage.from("physicalgo").getPublicUrl(videoPath);
       setProgress(55);
 
-      setLoadingStep("Claude Opus がフォームを分析中...");
+      setLoadingStep("Claude Sonnet がフォームを分析中...");
       const res = await fetch("/api/form/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -191,8 +191,7 @@ export function FormClient({ sessions, feedbacks }: Props) {
   return (
     <PageShell
       title="フォーム"
-      icon={<Video className="w-6 h-6" />}
-      description="動画をアップすると Claude Opus 4.7 がフォームを多角的に分析します"
+      description="動画をアップすると Claude Sonnet 4.6 がフォームを多角的に分析します"
     >
       <input
         ref={fileRef}
@@ -234,8 +233,8 @@ export function FormClient({ sessions, feedbacks }: Props) {
                   </div>
                   <h2 className="text-lg font-semibold">解析の準備完了</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    動画から複数フレームを抽出し、Claude Opus
-                    4.7が関節角度・バー軌道・テンポを総合評価します。
+                    動画から複数フレームを抽出し、Claude Sonnet
+                    4.6が関節角度・バー軌道・テンポを総合評価します。
                   </p>
                 </div>
                 {loading ? (
