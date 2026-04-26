@@ -1,1 +1,9 @@
-Created `lib/extract-frames.ts` with `extractFramesFromVideo` — it uses the browser Canvas API to seek to evenly-spaced timestamps across the video and capture each frame as a base64 JPEG string (without the `data:…;base64,` prefix, matching what an API endpoint would expect for multipart/JSON transmission).
+The file path `src/app/(app)/form/form-client.tsx` doesn't exist in this project (no `src/` dir, no `form` route, no git history). The current file content is descriptive text accidentally written to the file.
+
+The fix is a valid minimal client component:
+
+`"use client";
+
+export function FormClient() {
+  return null;
+}`
