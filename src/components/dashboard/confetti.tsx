@@ -1,8 +1,32 @@
-The file doesn't exist anywhere in the repository. The error `TS1128: Declaration or statement expected` on line 1 column 1 typically means the file is empty or contains only invalid content (like `...`).
+"use client";
 
-Since the file doesn't exist yet and the "current content" is just `...`, I need to create a valid confetti component. However, I don't have context on what this component should do. Could you clarify:
+import { useEffect } from "react";
+import confetti from "canvas-confetti";
 
-1. What should the `confetti.tsx` component do? (e.g., a confetti animation on some event?)
-2. Should it be placed at `src/components/dashboard/confetti.tsx` or somewhere else in the project?
+export default function Confetti() {
+  useEffect(() => {
+    const end = Date.now() + 2000;
+    const colors = ["#0891b2", "#2563B0", "#10b981"];
 
-Alternatively, if the file truly should exist with real content, please share the actual intended content and I'll fix the TypeScript errors in it.
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors,
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors,
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, []);
+
+  return null;
+}

@@ -1,48 +1,64 @@
-The file `src/app/layout.tsx` doesn't exist in this project (the layout is at `app/layout.tsx`). The error TS1128 is caused by the file containing only `...` which is invalid TypeScript. Here is the fixed content:
-
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import "@takaki/go-design-system/tokens.css";
+import type { Metadata, Viewport } from "next";
+import { Inter, Noto_Sans_JP } from "next/font/google";
 import { DesignTokens, Toaster } from "@takaki/go-design-system";
-import { DarkModeInit } from "@/components/layout/dark-mode-init";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
+import { PWARegister } from "@/components/pwa-register";
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
+});
+
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "MetaGo",
-  description: "PSF Product Manager — goシリーズの自律管理プラットフォーム",
+  title: "PhysicalGo",
+  description: "撮る・記録する・振り返る。トレーニングが楽しくなる。",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PhysicalGo",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#DC2626",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html
       lang="ja"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${notoSansJP.variable}`}
       suppressHydrationWarning
     >
       <head>
-        <DarkModeInit />
-        <DesignTokens primaryColor="#1E3A8A" primaryColorHover="#1E40AF" />
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `:root{--sidebar-accent:220 60% 94%;--sidebar-accent-foreground:226 71% 34%}.dark{--sidebar-accent:226 45% 18%;--sidebar-accent-foreground:226 60% 78%}`,
-          }}
+        <DesignTokens primaryColor="#DC2626" primaryColorHover="#B91C1C" />
+        <link
+          rel="apple-touch-icon"
+          href="/icons/apple-touch-icon.png"
+          sizes="180x180"
         />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="min-h-full">
+      <body className="antialiased">
         {children}
         <Toaster />
+        <PWARegister />
         <Analytics />
       </body>
     </html>
