@@ -1,9 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_JP } from "next/font/google";
-import { DesignTokens, Toaster } from "@takaki/go-design-system";
+import dynamic from "next/dynamic";
+import { DesignTokens } from "@takaki/go-design-system";
 import { PWARegister } from "@/components/pwa-register";
-import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
+
+const Toaster = dynamic(
+  () => import("@takaki/go-design-system").then((m) => ({ default: m.Toaster })),
+  { ssr: false }
+);
+
+const Analytics = dynamic(
+  () => import("@vercel/analytics/react").then((m) => ({ default: m.Analytics })),
+  { ssr: false }
+);
 
 const inter = Inter({
   variable: "--font-inter",
