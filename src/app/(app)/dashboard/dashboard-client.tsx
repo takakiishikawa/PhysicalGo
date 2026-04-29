@@ -17,7 +17,7 @@ import { ja } from "date-fns/locale";
 
 const MetricChart = dynamic(
   () =>
-    import("@/components/ui/metric-chart").then((m) => ({
+    import("@/components/charts/metric-chart").then((m) => ({
       default: m.MetricChart,
     })),
   { ssr: false },
@@ -135,8 +135,8 @@ export function DashboardClient({ exercises, personalRecords }: Props) {
               xKey="date"
               yKey="value"
               yUnit={isPullUp ? "回" : "kg"}
-              xTickFormatter={(v) => format(new Date(v), "M/d")}
-              tooltipLabelFormatter={(v) =>
+              xTickFormatter={(v: string) => format(new Date(v), "M/d")}
+              tooltipLabelFormatter={(v: string) =>
                 format(new Date(v), "M月d日", { locale: ja })
               }
             />
